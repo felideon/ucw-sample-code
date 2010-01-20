@@ -36,13 +36,22 @@
 (defcomponent form-component ()
   ())
 
-(defmethod render ((form form-component))
+(defmethod render :around ((form form-component))
   (<:form :method "post" :action "mailto:felideon+blog@gmail.com"
-	  (<:as-html "Name: ") (<:text :name "Name") (<:br)
-	  (<:as-html "Address: ") (<:text :name "Address") (<:br)
-	  (<:as-html "Phone: ") (<:text :name "Phone") (<:br)
-	  (<:p) (render (make-instance 'products-dropdown))
-	  (<:p) (<:submit :value "Place Order")))
+	  (call-next-method)))
+
+(defmethod render :before ((form form-component))
+  (<:h1 (<:as-html "Book Order Form")))
+
+(defmethod render ((form form-component))
+  (<:as-html "Name: ") (<:text :name "Name") (<:br)
+  (<:as-html "Address: ") (<:text :name "Address") (<:br)
+  (<:as-html "Phone: ") (<:text :name "Phone") (<:br)
+  (<:p) (render (make-instance 'products-dropdown))
+  (<:p))
+
+(defmethod render :after ((form form-component))
+  (<:submit :value "Place Order"))
 
 (defcomponent products-dropdown ()
   ())
