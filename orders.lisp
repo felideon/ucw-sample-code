@@ -27,30 +27,29 @@
 (defun shutdown-orders ()
   (shutdown-server *orders-ucw-server*))
 
-(defcomponent order-window (standard-window-component)
+(defcomponent books-window (standard-window-component)
   ()
   (:default-initargs
-      :title "Book Order Form"
-    :body (make-instance 'form-component)))
+      :title "Lisp Books"))
 
-(defcomponent form-component ()
+(defcomponent order-form ()
   ())
 
-(defmethod render :around ((form form-component))
+(define-symbol-macro $username (get-session-value :username))
+
+(defmethod render :before ((form order-form))
+  (<:h1 (<:as-html "Book Order Form"))
+  (<:h3 (<:as-html (format nil "Welcome, ~a" $username))))
+
+(defmethod render :wrapping ((form order-form))
   (<:form :method "post" :action "mailto:felideon+blog@gmail.com"
 	  (call-next-method)))
 
-(defmethod render :before ((form form-component))
-  (<:h1 (<:as-html "Book Order Form")))
-
-(defmethod render ((form form-component))
-  (<:as-html "Name: ") (<:text :name "Name") (<:br)
+(defmethod render ((form order-form))
   (<:as-html "Address: ") (<:text :name "Address") (<:br)
   (<:as-html "Phone: ") (<:text :name "Phone") (<:br)
   (<:p) (render (make-instance 'products-dropdown))
-  (<:p))
-
-(defmethod render :after ((form form-component))
+  (<:p)
   (<:submit :value "Place Order"))
 
 (defcomponent products-dropdown ()
@@ -66,7 +65,22 @@
    (<:option :value "GENTLE"
 	     "Common Lisp: A Gentle Introduction to Symbolic Computation")))
 
+(defcomponent welcome-screen ()
+  ())
+
+(defmethod render ((welcome welcome-screen))
+  (<:form :method "post" :action "index.ucw"
+	  (<:h2 (<:as-html "Enter your name"))
+	  (<:text :name "username")
+	  (<:submit :value "Enter")))
+
 (defentry-point "index.ucw" (:application *orders-ucw-application*
 					  :with-call/cc nil)
-    ()
-  (render (make-instance 'order-window)))
+    ((username nil))
+  (when username
+    (setf $username username))
+  (if username
+      (make-instance 'books-window
+		     :body (render (make-instance 'order-form)))
+      (make-instance 'books-window
+		     :body (render (make-instance 'welcome-screen)))))
