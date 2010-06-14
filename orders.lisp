@@ -57,13 +57,13 @@
 
 (defmethod render ((products products-dropdown))
   (<:select :name "Product"
-   (<:option :value "PCL" "Practical Common Lisp")
-   (<:option :value "C@W" "Coders At Work")
-   (<:option :value "OOPCLOS"
-	     "OOP in Common Lisp: A Programmer's Guide to CLOS")
-   (<:option :value "AMOP" "The Art of the Metaobject Protocol")
-   (<:option :value "GENTLE"
-	     "Common Lisp: A Gentle Introduction to Symbolic Computation")))
+	    (<:option :value "PCL" "Practical Common Lisp")
+	    (<:option :value "C@W" "Coders At Work")
+	    (<:option :value "OOPCLOS"
+		      "OOP in Common Lisp: A Programmer's Guide to CLOS")
+	    (<:option :value "AMOP" "The Art of the Metaobject Protocol")
+	    (<:option :value "GENTLE"
+		      "Common Lisp: A Gentle Introduction to Symbolic Computation")))
 
 (defcomponent welcome-screen ()
   ())
@@ -74,13 +74,16 @@
 	  (<:text :name "username")
 	  (<:submit :value "Enter")))
 
+(defun render-order-window (body-component-name &rest initargs)
+  (render 
+   (make-instance 'books-window  
+		  :body (apply #'make-instance body-component-name initargs))))
+
 (defentry-point "index.ucw" (:application *orders-ucw-application*
 					  :with-call/cc nil)
     ((username nil))
   (when username
     (setf $username username))
-  (if username
-      (make-instance 'books-window
-		     :body (render (make-instance 'order-form)))
-      (make-instance 'books-window
-		     :body (render (make-instance 'welcome-screen)))))
+  (if $username
+      (render-order-window 'order-form)
+      (render-order-window 'welcome-screen)))
